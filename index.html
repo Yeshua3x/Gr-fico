@@ -72,10 +72,32 @@
     button:hover {
       background: #0056b3;
     }
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+}
+
+
+body.dark-mode {
+  --bg-color: #121212;
+  --text-color: #ffffff;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, 
+color 0.3s;
+}
+
+
+
+    
+    
   </style>
 </head>
 <body>
-
+<button id="darkModeToggle">Modo Escuro</button>
 <div class="container">
   <div class="perfil">
     <img id="fotoPerfil" src="https://via.placeholder.com/100" alt="Foto de Perfil">
@@ -187,6 +209,30 @@
     }
   }
 
+
+  const toggleBtn = document.getElementById("darkModeToggle");
+const body = document.body;
+
+// Verifica se já existe preferência salva
+const savedTheme = localStorage.getItem("theme");
+
+if (savedTheme === "dark") {
+  body.classList.add("dark-mode");
+  toggleBtn.textContent = "Modo Claro";
+}
+
+toggleBtn.addEventListener("click", () => {
+  body.classList.toggle("dark-mode");
+
+  if (body.classList.contains("dark-mode")) {
+    toggleBtn.textContent = "Modo Claro";
+    localStorage.setItem("theme", "dark");
+  } else {
+    toggleBtn.textContent = "Modo Escuro";
+    localStorage.setItem("theme", "light");
+  }
+});
+    
   // Inicializar
   carregarDados();
 if ('serviceWorker' in navigator) {
