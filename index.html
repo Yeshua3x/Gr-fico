@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Fluxo de Caixa</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .perfil {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .perfil img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #ccc;
+    }
+
+    .perfil input {
+      display: block;
+      margin: 10px auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #f0f0f0;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="perfil">
+    <img id="fotoPerfil" src="https://via.placeholder.com/100" alt="Foto de Perfil">
+    <input type="file" id="uploadFoto" accept="image/*">
+    <h2>Meu Fluxo de Caixa</h2>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Descrição</th>
+        <th>Entrada (R$)</th>
+        <th>Saída (R$)</th>
+        <th>Saldo (R$)</th>
+      </tr>
+    </thead>
+    <tbody id="tabela">
+    </tbody>
+  </table>
+
+  <button onclick="adicionarLinha()">Adicionar Linha</button>
+  <button onclick="limparTudo()">Limpar Tudo</button>
+</div>
+
+<script>
+  const tabela = document.getElementById("tabela");
+  const fotoPerfil = document.getElementById("fotoPerfil");
+
+  // Função para adicionar linha
+  function adicionarLinha(data='', descricao='', entrada='', saida='') {
+    const linha = tabela.insertRow();
+    linha.insertCell(0).contentEditable = true;
+    linha.insertCell(1).contentEditable = true;
+    linha.insertCell(2).contentEditable = true;
+    linha.insertCell(3).contentEditable = true;
+    linha.insertCell(4).contentEditable = false;
+
+    linha.cells[0].innerText = data;
+    linha.cells[1].innerText = descricao;
+    linha.cells[2].innerText = entrada;
+    linha.cells[3].innerText = saida;
+
+    linha.addEventListener("input", () => {
+      calcularSaldo();
+      salvarDados();
+    });
+
+    calcularSaldo();
+    salvarDados();
+  }
+
+  // Calcular saldo
+  function calcularSaldo() {
+    let saldo = 0;
+    for (let i = 0; i < tabela.rows.length; i++) {
+      const entrada = parseFloat(tabela.rows[i].cells[2].innerText.replace(',', '.')) || 0;
+      const saida = parseFloat(tabela.rows[i].cells[3].innerText.replace(',', '.')) || 0;
+      saldo += entrada - saida;
+      tabela.rows[i].cells[4].innerText = saldo.toFixed(2).replace('.', ',');
+    }
+  }
+
+  // Upload de foto
+  document.getElementById("uploadFoto").addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        fotoPerfil.src = evt.target.result;
+        localStorage.setItem('fotoPerfil', evt.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Salvar dados no LocalStorage
+  function salvarDados() {
+    const dados = [];
+    for (let i = 0; i < tabela.rows.length; i++) {
+      const row = tabela.rows[i];
+      dados.push({
+        data: row.cells[0].innerText,
+        descricao: row.cells[1].innerText,
+        entrada: row.cells[2].innerText,
+        saida: row.cells[3].innerText
+      });
+    }
+    localStorage.setItem('fluxoCaixa', JSON.stringify(dados));
+  }
+
+  // Carregar dados do LocalStorage
+  function carregarDados() {
+    const dados = JSON.parse(localStorage.getItem('fluxoCaixa') || '[]');
+    for (const item of dados) {
+      adicionarLinha(item.data, item.descricao, item.entrada, item.saida);
+    }
+    const foto = localStorage.getItem('fotoPerfil');
+    if (foto) fotoPerfil.src = foto;
+  }
+
+  // Limpar tudo
+  function limparTudo() {
+    if(confirm("Deseja realmente limpar todos os dados?")) {
+      tabela.innerHTML = '';
+      localStorage.removeItem('fluxoCaixa');
+      localStorage.removeItem('fotoPerfil');
+      fotoPerfil.src = "https://via.placeholder.com/100";
+    }
+  }
+
+  // Inicializar
+  carregarDados();
+</script>
+
+</body>
+</html>
